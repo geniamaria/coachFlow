@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { Dumbbell } from "lucide-react";
+import Hero from "@/components/hero";
+import Footer from "@/components/footer";
+import Features from "@/components/features";
 
 export default function Home() {
   return (
@@ -14,9 +17,7 @@ export default function Home() {
             </div>
 
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                CoachFlow
-              </h1>
+              <h1 className="text-xl font-bold text-gray-900">CoachFlow</h1>
               <p className="text-sm text-gray-500">
                 Maria Genia • Personal Trainer
               </p>
@@ -64,24 +65,11 @@ export default function Home() {
         </div>
       </header>
 
-      {/* HERO TEMPORÁRIO */}
-      <section className="mx-auto flex max-w-7xl flex-col items-center justify-center px-6 py-24 text-center">
-        <h2 className="mb-6 text-4xl font-bold text-gray-900 md:text-6xl">
-          Gerencie os seus clientes e aulas num só lugar.
-        </h2>
-
-        <p className="mb-8 max-w-2xl text-lg text-gray-600">
-          CoachFlow é uma plataforma para personal trainers organizarem clientes,
-          agendas, planos de treino, desempenho e pagamentos de forma simples.
-        </p>
-
-        <Link
-          href="/dashboard"
-          className="rounded-full bg-green-600 px-8 py-3 text-white transition hover:bg-green-700"
-        >
-          Começar Agora
-        </Link>
-      </section>
+      {/* HERO  */}
+      <Hero />
+      {/* FUNCIONALIDADES */}
+      <Features />
+      <Footer />
     </main>
   );
 }
