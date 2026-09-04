@@ -3,6 +3,8 @@ import { Dumbbell } from "lucide-react";
 import Hero from "@/components/hero";
 import Footer from "@/components/footer";
 import Features from "@/components/features";
+import HowItWorks from "@/components/howItworks";
+import CallToAction from "@/components/callToAction";
 
 export default function Home() {
   return (
@@ -67,8 +69,17 @@ export default function Home() {
 
       {/* HERO  */}
       <Hero />
+
       {/* FUNCIONALIDADES */}
       <Features />
+
+      {/* COMO FUNCIONA */}
+      <HowItWorks />
+
+      {/* CALL TO ACTION */}
+      <CallToAction />
+      
+      {/* FOOTER */}
       <Footer />
     </main>
   );
