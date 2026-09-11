@@ -17,13 +17,25 @@ export default function ClientsPage() {
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState("Todos");
 
-  useEffect(() => {
-    const savedClients = localStorage.getItem("clients");
+useEffect(() => {
+  async function loadClients() {
+    try {
+      const response = await fetch("/api/clients");
 
-    if (savedClients) {
-      setClients(JSON.parse(savedClients));
+      if (!response.ok) {
+        throw new Error("Erro ao buscar clientes");
+      }
+
+      const data = await response.json();
+
+      setClients(data);
+    } catch (error) {
+      console.error("Erro ao carregar clientes:", error);
     }
-  }, []);
+  }
+
+  loadClients();
+}, []);
 
   const filteredClients = clients.filter((client) => {
     const matchesSearch =
@@ -36,23 +48,34 @@ export default function ClientsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  function handleDelete(id: number) {
-    const confirmDelete = window.confirm(
-      "Tem certeza que deseja eliminar este cliente?",
-    );
+  async function handleDelete(id: number) {
+  const confirmDelete = window.confirm(
+    "Tem certeza que deseja eliminar este cliente?",
+  );
 
-    if (!confirmDelete) {
-      return;
+  if (!confirmDelete) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/clients/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao eliminar cliente");
     }
 
-    const updatedClients = clients.filter((client) => client.id !== id);
-
-    setClients(updatedClients);
-
-    localStorage.setItem("clients", JSON.stringify(updatedClients));
+    setClients((currentClients) =>
+      currentClients.filter((client) => client.id !== id),
+    );
 
     setOpenMenu(null);
+  } catch (error) {
+    console.error("Erro:", error);
+    alert("Não foi possível eliminar o cliente.");
   }
+}
 
   return (
     <main className="min-h-screen bg-gray-50">
