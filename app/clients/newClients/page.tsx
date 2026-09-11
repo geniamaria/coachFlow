@@ -14,45 +14,55 @@ export default function NewClientPage() {
   const [status, setStatus] = useState("Ativo");
   const [notes, setNotes] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-  console.log("FORMULÁRIO FOI ENVIADO!");
-    const newClients = {
-      id: Date.now(),
-      name,
-      email,
-      phone,
-      birthDate,
-      goal,
-      plan,
-      status,
-      notes,
-    };
+    setLoading(true);
+    setError("");
 
-    const savedClients = localStorage.getItem("clients");
+    try {
+      const response = await fetch("/api/clients", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          birthDate,
+          goal,
+          plan,
+          status,
+          notes,
+        }),
+      });
 
-    const clients = savedClients
-      ? JSON.parse(savedClients)
-      : [];
+      const data = await response.json();
 
-    clients.push(newClients);
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao cadastrar cliente");
+      }
 
-    localStorage.setItem("clients", JSON.stringify(clients));
-console.log("Cliente guardado:", newClients);
-  console.log("Todos os clientes:", clients);
-    alert("Cliente cadastrado com sucesso!");
+      alert("Cliente cadastrado com sucesso!");
 
-    window.location.href = "/clients";
+      window.location.href = "/clients";
+    } catch (error) {
+      console.error("Erro:", error);
+      setError("Não foi possível cadastrar o cliente.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <main className="min-h-screen bg-gray-50">
-
       {/* HEADER */}
       <header className="border-b bg-white">
         <div className="mx-auto max-w-4xl px-6 py-5">
-
           <Link
             href="/clients"
             className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-green-600"
@@ -67,27 +77,22 @@ console.log("Cliente guardado:", newClients);
             </div>
 
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Novo Cliente
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900">Novo Cliente</h1>
 
               <p className="mt-1 text-black  text-gray-500">
                 Adicione um novo cliente ao CoachFlow.
               </p>
             </div>
           </div>
-
         </div>
       </header>
 
       {/* FORMULÁRIO */}
       <div className="mx-auto max-w-4xl px-6 py-8">
-
         <form
           onSubmit={handleSubmit}
           className="rounded-2xl border bg-white p-6 shadow-sm md:p-8"
         >
-
           {/* INFORMAÇÕES PESSOAIS */}
           <div>
             <h2 className="text-black  font-bold text-gray-900">
@@ -100,7 +105,6 @@ console.log("Cliente guardado:", newClients);
           </div>
 
           <div className="mt-6 grid gap-5 md:grid-cols-2">
-
             {/* NOME */}
             <div>
               <label className="text-black  font-medium text-gray-500">
@@ -161,7 +165,6 @@ console.log("Cliente guardado:", newClients);
                 className="mt-2 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-black  outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
               />
             </div>
-
           </div>
 
           {/* TREINO */}
@@ -176,7 +179,6 @@ console.log("Cliente guardado:", newClients);
           </div>
 
           <div className="mt-6 grid gap-5 md:grid-cols-2">
-
             {/* OBJETIVO */}
             <div>
               <label className="text-black  font-medium text-gray-500">
@@ -189,13 +191,9 @@ console.log("Cliente guardado:", newClients);
                 className="mt-2 w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-black  outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
                 required
               >
-                <option value="">
-                  Selecione o objetivo
-                </option>
+                <option value="">Selecione o objetivo</option>
 
-                <option value="Emagrecimento">
-                  Emagrecimento
-                </option>
+                <option value="Emagrecimento">Emagrecimento</option>
 
                 <option value="Ganho de massa muscular">
                   Ganho de massa muscular
@@ -205,13 +203,9 @@ console.log("Cliente guardado:", newClients);
                   Condicionamento físico
                 </option>
 
-                <option value="Aumento de força">
-                  Aumento de força
-                </option>
+                <option value="Aumento de força">Aumento de força</option>
 
-                <option value="Saúde e bem-estar">
-                  Saúde e bem-estar
-                </option>
+                <option value="Saúde e bem-estar">Saúde e bem-estar</option>
               </select>
             </div>
 
@@ -227,21 +221,13 @@ console.log("Cliente guardado:", newClients);
                 className="mt-2 w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-black  outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
                 required
               >
-                <option value="">
-                  Selecione o plano
-                </option>
+                <option value="">Selecione o plano</option>
 
-                <option value="Mensal">
-                  Mensal
-                </option>
+                <option value="Mensal">Mensal</option>
 
-                <option value="Trimestral">
-                  Trimestral
-                </option>
+                <option value="Trimestral">Trimestral</option>
 
-                <option value="Premium">
-                  Premium
-                </option>
+                <option value="Premium">Premium</option>
               </select>
             </div>
 
@@ -261,7 +247,6 @@ console.log("Cliente guardado:", newClients);
                 <option value="Pendente">Pendente</option>
               </select>
             </div>
-
           </div>
 
           {/* OBSERVAÇÕES */}
@@ -278,10 +263,14 @@ console.log("Cliente guardado:", newClients);
               className="mt-2 w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-black  outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100"
             />
           </div>
+          {error && (
+            <div className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
 
           {/* BOTÕES */}
           <div className="mt-8 flex justify-end gap-3 border-t pt-6">
-
             <Link
               href="/clients"
               className="rounded-lg border border-gray-200 px-5 py-2.5 text-black  font-semibold text-gray-600 transition hover:bg-gray-50"
@@ -291,13 +280,12 @@ console.log("Cliente guardado:", newClients);
 
             <button
               type="submit"
-              className="rounded-lg bg-green-600 px-5 py-2.5 text-black  font-semibold text-white transition hover:bg-green-700"
+              disabled={loading}
+              className="rounded-lg bg-green-600 px-5 py-2.5 font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Cadastrar Cliente
+              {loading ? "A cadastrar..." : "Cadastrar Cliente"}
             </button>
-
           </div>
-
         </form>
       </div>
     </main>

@@ -18,32 +18,35 @@ export default function EditClientPage() {
   const [status, setStatus] = useState("Ativo");
   const [notes, setNotes] = useState("");
 
+
+
+
   useEffect(() => {
-    const savedClients = localStorage.getItem("clients");
+  async function loadClient() {
+    try {
+      const response = await fetch(`/api/clients/${id}`);
 
-    if (!savedClients) {
-      return;
+      if (!response.ok) {
+        throw new Error("Cliente não encontrado");
+      }
+
+      const client = await response.json();
+
+      setName(client.name);
+      setEmail(client.email);
+      setPhone(client.phone || "");
+      setBirthDate(client.birthDate || "");
+      setGoal(client.goal);
+      setPlan(client.plan);
+      setStatus(client.status);
+      setNotes(client.notes || "");
+    } catch (error) {
+      console.error("Erro ao carregar cliente:", error);
     }
+  }
 
-    const clients = JSON.parse(savedClients);
-
-    const client = clients.find(
-      (client: any) => client.id === id
-    );
-
-    if (!client) {
-      return;
-    }
-
-    setName(client.name);
-    setEmail(client.email);
-    setPhone(client.phone);
-    setBirthDate(client.birthDate);
-    setGoal(client.goal);
-    setPlan(client.plan);
-    setStatus(client.status);
-    setNotes(client.notes);
-  }, [id]);
+  loadClient();
+}, [id]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
