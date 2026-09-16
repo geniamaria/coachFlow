@@ -11,21 +11,26 @@ export default function ClientDetailsPage() {
 
   const [client, setClient] = useState<any>(null);
 
-  useEffect(() => {
-    const savedClients = localStorage.getItem("clients");
+ useEffect(() => {
+  async function loadClient() {
+    try {
+      const response = await fetch(`/api/clients/${id}`);
 
-    if (!savedClients) {
-      return;
+      if (!response.ok) {
+        throw new Error("Cliente não encontrado");
+      }
+
+      const data = await response.json();
+
+      setClient(data);
+    } catch (error) {
+      console.error("Erro ao carregar cliente:", error);
+      setClient(null);
     }
+  }
 
-    const clients = JSON.parse(savedClients);
-
-    const foundClient = clients.find(
-      (client: any) => client.id === id
-    );
-
-    setClient(foundClient);
-  }, [id]);
+  loadClient();
+}, [id]);
 
   if (!client) {
     return (
