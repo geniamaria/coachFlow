@@ -12,29 +12,41 @@ export default function TrainingDetailsPage() {
   const [client, setClient] = useState<any>(null);
 
   useEffect(() => {
-    const savedTrainings = localStorage.getItem("trainings");
-    const savedClients = localStorage.getItem("clients");
-
-    if (savedTrainings) {
-      const trainings = JSON.parse(savedTrainings);
-
-      const foundTraining = trainings.find(
-        (item: any) => item.id === Number(params.id)
+  async function loadTraining() {
+    try {
+      const trainingResponse = await fetch(
+        `/api/trainings/${params.id}`
       );
 
-      setTraining(foundTraining);
-    }
+      if (!trainingResponse.ok) {
+        throw new Error("Plano de treino não encontrado");
+      }
 
-    if (savedClients) {
-      const clients = JSON.parse(savedClients);
+      const trainingData = await trainingResponse.json();
 
-      const foundClient = clients.find(
-        (item: any) => item.id === training?.clientId
+      setTraining(trainingData);
+
+      const clientsResponse = await fetch("/api/clients");
+
+      if (!clientsResponse.ok) {
+        throw new Error("Erro ao buscar clientes");
+      }
+
+      const clientsData = await clientsResponse.json();
+
+      const foundClient = clientsData.find(
+        (item: any) => item.id === trainingData.clientId
       );
 
       setClient(foundClient);
+    } catch (error) {
+      console.error("Erro ao carregar plano:", error);
+      setTraining(null);
     }
-  }, [params.id, training?.clientId]);
+  }
+
+  loadTraining();
+}, [params.id]);
 
   if (!training) {
     return (

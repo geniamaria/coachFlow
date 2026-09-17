@@ -14,45 +14,62 @@ export default function NewSchedulePage() {
   const [status, setStatus] = useState("Agendado");
   const [notes, setNotes] = useState("");
 
-  useEffect(() => {
-    const savedClients = localStorage.getItem("clients");
+useEffect(() => {
+  async function loadClients() {
+    try {
+      const response = await fetch("/api/clients");
 
-    if (savedClients) {
-      setClients(JSON.parse(savedClients));
+      if (!response.ok) {
+        throw new Error("Erro ao buscar clientes");
+      }
+
+      const data = await response.json();
+
+      setClients(data);
+    } catch (error) {
+      console.error("Erro ao carregar clientes:", error);
     }
-  }, []);
+  }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  loadClients();
+}, []);
 
-    const newSchedule = {
-      id: Date.now(),
-      clientId: Number(clientId),
-      date,
-      time,
-      type,
-      status,
-      notes,
-    };
+async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
 
-    const savedSchedules = localStorage.getItem("schedules");
+  try {
+    const response = await fetch("/api/schedules", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        clientId: Number(clientId),
+        date,
+        time,
+        type,
+        status,
+        notes,
+      }),
+    });
 
-    const schedules = savedSchedules
-      ? JSON.parse(savedSchedules)
-      : [];
+    if (!response.ok) {
+      throw new Error("Erro ao criar agendamento");
+    }
 
-    schedules.push(newSchedule);
+    const data = await response.json();
 
-    localStorage.setItem(
-      "schedules",
-      JSON.stringify(schedules)
-    );
+    console.log("Agendamento criado:", data);
 
     alert("Agendamento criado com sucesso!");
 
     window.location.href = "/schedule";
-  }
+  } catch (error) {
+    console.error("Erro ao criar agendamento:", error);
 
+    alert("Não foi possível criar o agendamento.");
+  }
+}
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="border-b bg-white">
