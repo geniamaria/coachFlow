@@ -20,66 +20,75 @@ export default function EditSchedulePage() {
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
-    const savedClients = localStorage.getItem("clients");
-    const savedSchedules = localStorage.getItem("schedules");
+  async function loadData() {
+    try {
+      const clientsResponse = await fetch("/api/clients");
+      const scheduleResponse = await fetch(`/api/schedules/${id}`);
 
-    if (savedClients) {
-      setClients(JSON.parse(savedClients));
-    }
-
-    if (savedSchedules) {
-      const schedules = JSON.parse(savedSchedules);
-
-      const foundSchedule = schedules.find(
-        (schedule: any) => schedule.id === id
-      );
-
-      if (foundSchedule) {
-        setSchedule(foundSchedule);
-        setClientId(String(foundSchedule.clientId));
-        setDate(foundSchedule.date);
-        setTime(foundSchedule.time);
-        setType(foundSchedule.type);
-        setStatus(foundSchedule.status);
-        setNotes(foundSchedule.notes || "");
-      }
-    }
-  }, [id]);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const savedSchedules = localStorage.getItem("schedules");
-
-    const schedules = savedSchedules
-      ? JSON.parse(savedSchedules)
-      : [];
-
-    const updatedSchedules = schedules.map((schedule: any) => {
-      if (schedule.id === id) {
-        return {
-          ...schedule,
-          clientId: Number(clientId),
-          date,
-          time,
-          type,
-          status,
-          notes,
-        };
+      if (!clientsResponse.ok) {
+        throw new Error("Erro ao buscar clientes");
       }
 
-      return schedule;
+      if (!scheduleResponse.ok) {
+        throw new Error("Erro ao buscar agendamento");
+      }
+
+      const clientsData = await clientsResponse.json();
+      const scheduleData = await scheduleResponse.json();
+
+      setClients(clientsData);
+      setSchedule(scheduleData);
+
+      setClientId(String(scheduleData.clientId));
+      setDate(scheduleData.date);
+      setTime(scheduleData.time);
+      setType(scheduleData.type);
+      setStatus(scheduleData.status);
+      setNotes(scheduleData.notes || "");
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
+    }
+  }
+
+  loadData();
+}, [id]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+
+  try {
+    const response = await fetch(`/api/schedules/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        clientId: Number(clientId),
+        date,
+        time,
+        type,
+        status,
+        notes,
+      }),
     });
 
-    localStorage.setItem(
-      "schedules",
-      JSON.stringify(updatedSchedules)
-    );
+    if (!response.ok) {
+      throw new Error("Erro ao atualizar agendamento");
+    }
+
+    const data = await response.json();
+
+    console.log("Agendamento atualizado:", data);
 
     alert("Agendamento atualizado com sucesso!");
 
     window.location.href = "/schedule";
+  } catch (error) {
+    console.error("Erro ao atualizar agendamento:", error);
+
+    alert("Não foi possível atualizar o agendamento.");
   }
+}
 
   if (!schedule) {
     return (

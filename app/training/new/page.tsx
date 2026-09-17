@@ -30,37 +30,57 @@ export default function NewTrainingPage() {
   }
 
   useEffect(() => {
-    const savedClients = localStorage.getItem("clients");
+    async function loadClients() {
+      try {
+        const response = await fetch("/api/clients");
 
-    if (savedClients) {
-      setClients(JSON.parse(savedClients));
+        if (!response.ok) {
+          throw new Error("Erro ao buscar clientes");
+        }
+
+        const data = await response.json();
+
+        setClients(data);
+      } catch (error) {
+        console.error("Erro ao carregar clientes:", error);
+      }
     }
-  }, []);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    loadClients();
+  }, []);
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const newTraining = {
-      id: Date.now(),
-      clientId: Number(clientId),
-      name,
-      goal,
-      duration,
-      notes,
-      exercises,
-    };
+    try {
+      const response = await fetch("/api/trainings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          clientId: Number(clientId),
+          name,
+          goal,
+          duration,
+          notes,
+          exercises,
+        }),
+      });
 
-    const savedTrainings = localStorage.getItem("trainings");
+      if (!response.ok) {
+        throw new Error("Erro ao criar plano de treino");
+      }
 
-    const trainings = savedTrainings ? JSON.parse(savedTrainings) : [];
+      await response.json();
 
-    trainings.push(newTraining);
+      alert("Plano de treino criado com sucesso!");
 
-    localStorage.setItem("trainings", JSON.stringify(trainings));
+      window.location.href = "/training";
+    } catch (error) {
+      console.error("Erro:", error);
 
-    alert("Plano de treino criado com sucesso!");
-
-    window.location.href = "/training";
+      alert("Não foi possível criar o plano de treino.");
+    }
   }
 
   return (

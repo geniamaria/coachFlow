@@ -17,17 +17,29 @@ export default function TrainingPage() {
   const [openMenu, setOpenMenu] = useState<number | null>(null);
 
   useEffect(() => {
-    const savedTrainings = localStorage.getItem("trainings");
-    const savedClients = localStorage.getItem("clients");
+  async function loadData() {
+    try {
+      const [trainingsResponse, clientsResponse] = await Promise.all([
+        fetch("/api/trainings"),
+        fetch("/api/clients"),
+      ]);
 
-    if (savedTrainings) {
-      setTrainings(JSON.parse(savedTrainings));
-    }
+      if (!trainingsResponse.ok || !clientsResponse.ok) {
+        throw new Error("Erro ao carregar dados");
+      }
 
-    if (savedClients) {
-      setClients(JSON.parse(savedClients));
+      const trainingsData = await trainingsResponse.json();
+      const clientsData = await clientsResponse.json();
+
+      setTrainings(trainingsData);
+      setClients(clientsData);
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
     }
-  }, []);
+  }
+
+  loadData();
+}, []);
 
   function getClientName(clientId: number) {
     const client = clients.find((client) => client.id === clientId);
@@ -35,23 +47,35 @@ export default function TrainingPage() {
     return client ? client.name : "Cliente não encontrado";
   }
 
-  function handleDelete(id: number) {
-    const confirmDelete = window.confirm(
-      "Tem certeza que deseja eliminar este plano de treino?",
-    );
+async function handleDelete(id: number) {
+  const confirmDelete = window.confirm(
+    "Tem certeza que deseja eliminar este plano de treino?",
+  );
 
-    if (!confirmDelete) {
-      return;
+  if (!confirmDelete) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/trainings/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao eliminar plano");
     }
 
-    const updatedTrainings = trainings.filter((training) => training.id !== id);
-
-    setTrainings(updatedTrainings);
-
-    localStorage.setItem("trainings", JSON.stringify(updatedTrainings));
+    setTrainings((currentTrainings) =>
+      currentTrainings.filter((training) => training.id !== id),
+    );
 
     setOpenMenu(null);
+  } catch (error) {
+    console.error("Erro ao eliminar plano:", error);
+
+    alert("Não foi possível eliminar o plano de treino.");
   }
+}
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -68,7 +92,7 @@ export default function TrainingPage() {
           </div>
 
           <Link
-            href="/training/newTraining"
+            href="/training/new"
             className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700"
           >
             <Plus size={18} />

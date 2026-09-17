@@ -15,41 +15,69 @@ export default function SchedulePage() {
   const [clients, setClients] = useState<any[]>([]);
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   // Função para alternar o menu de opções
-  useEffect(() => {
-    const savedSchedules = localStorage.getItem("schedules");
-    const savedClients = localStorage.getItem("clients");
+ useEffect(() => {
+  async function loadData() {
+    try {
+      const schedulesResponse = await fetch("/api/schedules");
+      const clientsResponse = await fetch("/api/clients");
 
-    if (savedSchedules) {
-      setSchedules(JSON.parse(savedSchedules));
-    }
+      if (!schedulesResponse.ok) {
+        throw new Error("Erro ao buscar agendamentos");
+      }
 
-    if (savedClients) {
-      setClients(JSON.parse(savedClients));
+      if (!clientsResponse.ok) {
+        throw new Error("Erro ao buscar clientes");
+      }
+
+      const schedulesData = await schedulesResponse.json();
+      const clientsData = await clientsResponse.json();
+
+      setSchedules(schedulesData);
+      setClients(clientsData);
+    } catch (error) {
+      console.error("Erro ao carregar agenda:", error);
     }
-  }, []);
+  }
+
+  loadData();
+}, []);
+
+
+
+
   function getClientName(clientId: number) {
     const client = clients.find((client) => client.id === clientId);
 
     return client ? client.name : "Cliente não encontrado";
   }
   // Função para deletar agendamento
-  function handleDelete(id: number) {
-    const confirmDelete = window.confirm(
-      "Tem certeza que deseja eliminar este agendamento?",
-    );
+  async function handleDelete(id: number) {
+  const confirmDelete = window.confirm(
+    "Tem certeza que deseja eliminar este agendamento?",
+  );
 
-    if (!confirmDelete) {
-      return;
+  if (!confirmDelete) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/schedules/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao eliminar agendamento");
     }
 
-    const updatedSchedules = schedules.filter((schedule) => schedule.id !== id);
-
-    setSchedules(updatedSchedules);
-
-    localStorage.setItem("schedules", JSON.stringify(updatedSchedules));
+    setSchedules((currentSchedules) =>
+      currentSchedules.filter((schedule) => schedule.id !== id),
+    );
 
     setOpenMenu(null);
+  } catch (error) {
+    console.error("Erro ao eliminar agendamento:", error);
   }
+}
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -65,7 +93,7 @@ export default function SchedulePage() {
           </div>
 
           <Link
-            href="/schedule/newSchedule"
+            href="/schedule/new"
             className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700"
           >
             <Plus size={18} />
