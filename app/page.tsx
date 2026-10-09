@@ -40,7 +40,7 @@ export default function Home() {
               Agenda
             </Link>
 
-            <Link href="/workouts" className="transition hover:text-green-600">
+            <Link href="/training" className="transition hover:text-green-600">
               Planos
             </Link>
 

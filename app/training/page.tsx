@@ -6,8 +6,8 @@ import {
   Plus,
   ClipboardList,
   MoreHorizontal,
-  PencilLine,
   Trash,
+  Pencil,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -17,29 +17,29 @@ export default function TrainingPage() {
   const [openMenu, setOpenMenu] = useState<number | null>(null);
 
   useEffect(() => {
-  async function loadData() {
-    try {
-      const [trainingsResponse, clientsResponse] = await Promise.all([
-        fetch("/api/trainings"),
-        fetch("/api/clients"),
-      ]);
+    async function loadData() {
+      try {
+        const [trainingsResponse, clientsResponse] = await Promise.all([
+          fetch("/api/trainings"),
+          fetch("/api/clients"),
+        ]);
 
-      if (!trainingsResponse.ok || !clientsResponse.ok) {
-        throw new Error("Erro ao carregar dados");
+        if (!trainingsResponse.ok || !clientsResponse.ok) {
+          throw new Error("Erro ao carregar dados");
+        }
+
+        const trainingsData = await trainingsResponse.json();
+        const clientsData = await clientsResponse.json();
+
+        setTrainings(trainingsData);
+        setClients(clientsData);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
       }
-
-      const trainingsData = await trainingsResponse.json();
-      const clientsData = await clientsResponse.json();
-
-      setTrainings(trainingsData);
-      setClients(clientsData);
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
     }
-  }
 
-  loadData();
-}, []);
+    loadData();
+  }, []);
 
   function getClientName(clientId: number) {
     const client = clients.find((client) => client.id === clientId);
@@ -47,35 +47,35 @@ export default function TrainingPage() {
     return client ? client.name : "Cliente não encontrado";
   }
 
-async function handleDelete(id: number) {
-  const confirmDelete = window.confirm(
-    "Tem certeza que deseja eliminar este plano de treino?",
-  );
-
-  if (!confirmDelete) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`/api/trainings/${id}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) {
-      throw new Error("Erro ao eliminar plano");
-    }
-
-    setTrainings((currentTrainings) =>
-      currentTrainings.filter((training) => training.id !== id),
+  async function handleDelete(id: number) {
+    const confirmDelete = window.confirm(
+      "Tem certeza que deseja eliminar este plano de treino?",
     );
 
-    setOpenMenu(null);
-  } catch (error) {
-    console.error("Erro ao eliminar plano:", error);
+    if (!confirmDelete) {
+      return;
+    }
 
-    alert("Não foi possível eliminar o plano de treino.");
+    try {
+      const response = await fetch(`/api/trainings/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao eliminar plano");
+      }
+
+      setTrainings((currentTrainings) =>
+        currentTrainings.filter((training) => training.id !== id),
+      );
+
+      setOpenMenu(null);
+    } catch (error) {
+      console.error("Erro ao eliminar plano:", error);
+
+      alert("Não foi possível eliminar o plano de treino.");
+    }
   }
-}
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -124,7 +124,7 @@ async function handleDelete(id: number) {
               </p>
 
               <Link
-                href="/training/newTraning"
+                href="/training/new"
                 className="mt-5 inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
               >
                 <ClipboardList size={18} />
@@ -188,15 +188,14 @@ async function handleDelete(id: number) {
                           Ver detalhes
                         </button>
 
-                        <button
-                          onClick={() => {
-                            alert("Edição do plano em breve.");
-                            setOpenMenu(null);
-                          }}
-                          className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                        <Link
+                          href={`/training/edit/${training.id}`}
+                          onClick={() => setOpenMenu(null)}
+                          className="flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
                         >
-                          <PencilLine />
-                        </button>
+                          <Pencil size={17} />
+                          Editar
+                        </Link>
 
                         <button
                           onClick={() => handleDelete(training.id)}
