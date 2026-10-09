@@ -18,8 +18,8 @@ export default function EditClientPage() {
   const [status, setStatus] = useState("Ativo");
   const [notes, setNotes] = useState("");
 
-
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
   async function loadClient() {
@@ -48,21 +48,19 @@ export default function EditClientPage() {
   loadClient();
 }, [id]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const savedClients = localStorage.getItem("clients");
+    setLoading(true);
+    setError("");
 
-    if (!savedClients) {
-      return;
-    }
-
-    const clients = JSON.parse(savedClients);
-
-    const updatedClients = clients.map((client: any) => {
-      if (client.id === id) {
-        return {
-          ...client,
+    try {
+      const response = await fetch(`/api/clients/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           name,
           email,
           phone,
@@ -71,20 +69,23 @@ export default function EditClientPage() {
           plan,
           status,
           notes,
-        };
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Erro ao atualizar cliente");
       }
 
-      return client;
-    });
+      alert("Cliente atualizado com sucesso!");
 
-    localStorage.setItem(
-      "clients",
-      JSON.stringify(updatedClients)
-    );
-
-    alert("Cliente atualizado com sucesso!");
-
-    window.location.href = "/clients";
+      window.location.href = "/clients";
+    } catch (error) {
+      console.error("Erro ao atualizar cliente:", error);
+      setError("Não foi possível atualizar o cliente.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -300,6 +301,12 @@ export default function EditClientPage() {
           {/* BOTÕES */}
           <div className="mt-8 flex justify-end gap-3 border-t pt-6">
 
+            {error && (
+              <p className="mr-auto self-center rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
+                {error}
+              </p>
+            )}
+
             <Link
               href="/clients"
               className="rounded-lg border border-gray-200 px-5 py-2.5 text-black font-semibold text-gray-600 transition hover:bg-gray-50"
@@ -309,9 +316,10 @@ export default function EditClientPage() {
 
             <button
               type="submit"
-              className="rounded-lg bg-green-600 px-5 py-2.5 text-black font-semibold text-white transition hover:bg-green-700"
+              disabled={loading}
+              className="rounded-lg bg-green-600 px-5 py-2.5 text-black font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Guardar Alterações
+              {loading ? "A guardar..." : "Guardar Alterações"}
             </button>
 
           </div>

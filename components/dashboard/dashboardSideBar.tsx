@@ -27,7 +27,7 @@ const menuItems = [
   },
   {
     label: "Planos de Treino",
-    href: "/workouts",
+    href: "/training",
     icon: Dumbbell,
   },
   {

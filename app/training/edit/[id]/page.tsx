@@ -19,33 +19,42 @@ export default function EditTrainingPage() {
 
   const [exercises, setExercises] = useState<any[]>([]);
 
-  useEffect(() => {
-    const savedTrainings = localStorage.getItem("trainings");
-    const savedClients = localStorage.getItem("clients");
+ useEffect(() => {
+  async function loadData() {
+    try {
+      const [trainingResponse, clientsResponse] = await Promise.all([
+        fetch(`/api/trainings/${params.id}`),
+        fetch("/api/clients"),
+      ]);
 
-    if (savedClients) {
-      setClients(JSON.parse(savedClients));
-    }
-
-    if (savedTrainings) {
-      const trainings = JSON.parse(savedTrainings);
-
-      const foundTraining = trainings.find(
-        (item: any) => item.id === Number(params.id)
-      );
-
-      if (foundTraining) {
-        setTraining(foundTraining);
-
-        setClientId(String(foundTraining.clientId));
-        setName(foundTraining.name);
-        setGoal(foundTraining.goal);
-        setDuration(foundTraining.duration);
-        setNotes(foundTraining.notes || "");
-        setExercises(foundTraining.exercises || []);
+      if (!trainingResponse.ok) {
+        throw new Error("Plano de treino não encontrado");
       }
+
+      if (!clientsResponse.ok) {
+        throw new Error("Erro ao buscar clientes");
+      }
+
+      const trainingData = await trainingResponse.json();
+      const clientsData = await clientsResponse.json();
+
+      setTraining(trainingData);
+      setClients(clientsData);
+
+      setClientId(String(trainingData.clientId));
+      setName(trainingData.name);
+      setGoal(trainingData.goal);
+      setDuration(trainingData.duration);
+      setNotes(trainingData.notes || "");
+      setExercises(trainingData.exercises || []);
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
+      setTraining(null);
     }
-  }, [params.id]);
+  }
+
+  loadData();
+}, [params.id]);
 
   function addExercise() {
     const newExercise = {
@@ -84,42 +93,40 @@ export default function EditTrainingPage() {
     setExercises(updatedExercises);
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault();
 
-    const savedTrainings = localStorage.getItem("trainings");
-
-    if (!savedTrainings) {
-      return;
-    }
-
-    const trainings = JSON.parse(savedTrainings);
-
-    const updatedTrainings = trainings.map((item: any) => {
-      if (item.id === Number(params.id)) {
-        return {
-          ...item,
-          clientId: Number(clientId),
-          name,
-          goal,
-          duration,
-          notes,
-          exercises,
-        };
-      }
-
-      return item;
+  try {
+    const response = await fetch(`/api/trainings/${params.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        clientId: Number(clientId),
+        name,
+        goal,
+        duration,
+        notes,
+        exercises,
+      }),
     });
 
-    localStorage.setItem(
-      "trainings",
-      JSON.stringify(updatedTrainings)
-    );
+    if (!response.ok) {
+      throw new Error("Erro ao atualizar plano de treino");
+    }
+
+    await response.json();
 
     alert("Plano de treino atualizado com sucesso!");
 
     window.location.href = `/training/${params.id}`;
+  } catch (error) {
+    console.error("Erro ao atualizar plano:", error);
+
+    alert("Não foi possível atualizar o plano de treino.");
   }
+}
 
   if (!training) {
     return (

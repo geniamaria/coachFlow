@@ -12,41 +12,39 @@ export default function TrainingDetailsPage() {
   const [client, setClient] = useState<any>(null);
 
   useEffect(() => {
-  async function loadTraining() {
-    try {
-      const trainingResponse = await fetch(
-        `/api/trainings/${params.id}`
-      );
+    async function loadTraining() {
+      try {
+        const trainingResponse = await fetch(`/api/trainings/${params.id}`);
 
-      if (!trainingResponse.ok) {
-        throw new Error("Plano de treino não encontrado");
+        if (!trainingResponse.ok) {
+          throw new Error("Plano de treino não encontrado");
+        }
+
+        const trainingData = await trainingResponse.json();
+
+        setTraining(trainingData);
+
+        const clientsResponse = await fetch("/api/clients");
+
+        if (!clientsResponse.ok) {
+          throw new Error("Erro ao buscar clientes");
+        }
+
+        const clientsData = await clientsResponse.json();
+
+        const foundClient = clientsData.find(
+          (item: any) => item.id === trainingData.clientId,
+        );
+
+        setClient(foundClient);
+      } catch (error) {
+        console.error("Erro ao carregar plano:", error);
+        setTraining(null);
       }
-
-      const trainingData = await trainingResponse.json();
-
-      setTraining(trainingData);
-
-      const clientsResponse = await fetch("/api/clients");
-
-      if (!clientsResponse.ok) {
-        throw new Error("Erro ao buscar clientes");
-      }
-
-      const clientsData = await clientsResponse.json();
-
-      const foundClient = clientsData.find(
-        (item: any) => item.id === trainingData.clientId
-      );
-
-      setClient(foundClient);
-    } catch (error) {
-      console.error("Erro ao carregar plano:", error);
-      setTraining(null);
     }
-  }
 
-  loadTraining();
-}, [params.id]);
+    loadTraining();
+  }, [params.id]);
 
   if (!training) {
     return (
@@ -90,15 +88,13 @@ export default function TrainingDetailsPage() {
             </p>
           </div>
 
-          <button
-            type="button"
+          <Link
+            href={`/training/edit/${params.id}`}
             className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
           >
-            {/* <link //href="/training/newTraning"> */}
             <Pencil size={17} />
             Editar
-            
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -106,9 +102,7 @@ export default function TrainingDetailsPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-xl border bg-white p-5">
             <p className="text-sm text-gray-500">Objetivo</p>
-            <p className="mt-1 font-semibold text-gray-900">
-              {training.goal}
-            </p>
+            <p className="mt-1 font-semibold text-gray-900">{training.goal}</p>
           </div>
 
           <div className="rounded-xl border bg-white p-5">
@@ -128,9 +122,7 @@ export default function TrainingDetailsPage() {
 
         <div className="rounded-xl border bg-white">
           <div className="border-b px-6 py-4">
-            <h2 className="font-semibold text-gray-900">
-              Exercícios do plano
-            </h2>
+            <h2 className="font-semibold text-gray-900">Exercícios do plano</h2>
           </div>
 
           {training.exercises?.length === 0 ? (
@@ -143,71 +135,59 @@ export default function TrainingDetailsPage() {
             </div>
           ) : (
             <div className="divide-y">
-              {training.exercises.map(
-                (exercise: any, index: number) => (
-                  <div key={exercise.id} className="p-6">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 text-sm font-semibold text-green-600">
-                        {index + 1}
-                      </div>
-
-                      <h3 className="font-semibold text-gray-900">
-                        {exercise.name || "Exercício sem nome"}
-                      </h3>
+              {training.exercises.map((exercise: any, index: number) => (
+                <div key={exercise.id} className="p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 text-sm font-semibold text-green-600">
+                      {index + 1}
                     </div>
 
-                    <div className="mt-4 grid gap-4 sm:grid-cols-4">
-                      <div>
-                        <p className="text-xs text-gray-500">
-                          Séries
-                        </p>
-                        <p className="mt-1 text-sm font-medium">
-                          {exercise.sets || "-"}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-gray-500">
-                          Repetições
-                        </p>
-                        <p className="mt-1 text-sm font-medium">
-                          {exercise.repetitions || "-"}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-gray-500">
-                          Carga
-                        </p>
-                        <p className="mt-1 text-sm font-medium">
-                          {exercise.weight || "-"}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-gray-500">
-                          Descanso
-                        </p>
-                        <p className="mt-1 text-sm font-medium">
-                          {exercise.rest || "-"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {exercise.notes && (
-                      <div className="mt-4 rounded-lg bg-gray-50 p-3">
-                        <p className="text-xs text-gray-500">
-                          Observações
-                        </p>
-
-                        <p className="mt-1 text-sm text-gray-700">
-                          {exercise.notes}
-                        </p>
-                      </div>
-                    )}
+                    <h3 className="font-semibold text-gray-900">
+                      {exercise.name || "Exercício sem nome"}
+                    </h3>
                   </div>
-                )
-              )}
+
+                  <div className="mt-4 grid gap-4 sm:grid-cols-4">
+                    <div>
+                      <p className="text-xs text-gray-500">Séries</p>
+                      <p className="mt-1 text-sm font-medium">
+                        {exercise.sets || "-"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-500">Repetições</p>
+                      <p className="mt-1 text-sm font-medium">
+                        {exercise.repetitions || "-"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-500">Carga</p>
+                      <p className="mt-1 text-sm font-medium">
+                        {exercise.weight || "-"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-500">Descanso</p>
+                      <p className="mt-1 text-sm font-medium">
+                        {exercise.rest || "-"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {exercise.notes && (
+                    <div className="mt-4 rounded-lg bg-gray-50 p-3">
+                      <p className="text-xs text-gray-500">Observações</p>
+
+                      <p className="mt-1 text-sm text-gray-700">
+                        {exercise.notes}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </div>

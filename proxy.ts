@@ -23,5 +23,8 @@ export const config = {
     "/clients/:path*",
     "/schedule/:path*",
     "/training/:path*",
+    "/progress/:path*",
+    "/goals/:path*",
+    "/payments/:path*",
   ],
 };

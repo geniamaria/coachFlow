@@ -64,13 +64,29 @@ export async function PUT(
       where: {
         id: trainingId,
       },
+
       data: {
         clientId: Number(body.clientId),
         name: body.name,
         goal: body.goal,
         duration: body.duration,
         notes: body.notes || null,
+
+        exercises: {
+          deleteMany: {},
+
+          create:
+            body.exercises?.map((exercise: any) => ({
+              name: exercise.name,
+              sets: exercise.sets,
+              repetitions: exercise.repetitions,
+              weight: exercise.weight,
+              rest: exercise.rest,
+              notes: exercise.notes || null,
+            })) || [],
+        },
       },
+
       include: {
         exercises: true,
       },

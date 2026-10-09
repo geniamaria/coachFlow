@@ -1,38 +1,47 @@
-import {
-  Users,
-  CalendarDays,
-  CreditCard,
-  DollarSign,
-} from "lucide-react";
+import { Users, CalendarDays, Dumbbell, CalendarClock } from "lucide-react";
 
-const stats = [
-  {
-    title: "Clientes",
-    value: "24",
-    description: "Clientes ativos",
-    icon: Users,
-  },
-  {
-    title: "Aulas hoje",
-    value: "8",
-    description: "Sessões agendadas",
-    icon: CalendarDays,
-  },
-  {
-    title: "Pagamentos",
-    value: "3",
-    description: "Pagamentos pendentes",
-    icon: CreditCard,
-  },
-  {
-    title: "Receita",
-    value: "45.000 MT",
-    description: "Receita este mês",
-    icon: DollarSign,
-  },
-];
+type DashboardStatsProps = {
+  clientsCount: number;
+  activeClientsCount: number;
+  todaySessionsCount: number;
+  trainingsCount: number;
+  upcomingSessionsCount: number;
+};
 
-export default function DashboardStats() {
+export default function DashboardStats({
+  clientsCount,
+  activeClientsCount,
+  todaySessionsCount,
+  trainingsCount,
+  upcomingSessionsCount,
+}: DashboardStatsProps) {
+  const stats = [
+    {
+      title: "Clientes",
+      value: String(clientsCount),
+      description: `${activeClientsCount} ativos`,
+      icon: Users,
+    },
+    {
+      title: "Aulas hoje",
+      value: String(todaySessionsCount),
+      description: "Sessões agendadas para hoje",
+      icon: CalendarDays,
+    },
+    {
+      title: "Planos de treino",
+      value: String(trainingsCount),
+      description: "Planos criados",
+      icon: Dumbbell,
+    },
+    {
+      title: "Sessões futuras",
+      value: String(upcomingSessionsCount),
+      description: "A partir de hoje",
+      icon: CalendarClock,
+    },
+  ];
+
   return (
     <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
       {stats.map((stat) => {

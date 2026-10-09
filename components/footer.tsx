@@ -60,7 +60,7 @@ export default function Footer() {
               </li>
 
               <li>
-                <Link href="/workouts" className="hover:text-green-600">
+                <Link href="/training" className="hover:text-green-600">
                   Planos de Treino
                 </Link>
               </li>
