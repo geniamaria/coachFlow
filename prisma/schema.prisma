@@ -21,8 +21,9 @@ model Client {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  schedules Schedule[]
-  trainings Training[]
+  schedules  Schedule[]
+  trainings  Training[]
+  progresses Progress[]
 }
 
 model Schedule {
@@ -64,4 +65,22 @@ model Exercise {
   notes       String?
 
   training    Training @relation(fields: [trainingId], references: [id], onDelete: Cascade)
+}
+
+model Progress {
+  id        Int      @id @default(autoincrement())
+  clientId  Int
+  date      String
+  weight    Float?
+  bodyFat   Float?
+  chest     Float?
+  waist     Float?
+  hip       Float?
+  arm       Float?
+  thigh     Float?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }
