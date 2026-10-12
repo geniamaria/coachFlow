@@ -2,7 +2,27 @@
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Users, TrendingUp } from "lucide-react";
 
-export default function Hero() {
+export type HeroStats = {
+  clientsCount: number;
+  todaySessionsCount: number;
+  progressPercent: number;
+};
+
+export type HeroAppointment = {
+  id: number;
+  clientName: string;
+  type: string;
+  date: string;
+  time: string;
+  isToday: boolean;
+};
+
+type HeroProps = {
+  stats: HeroStats;
+  appointments: HeroAppointment[];
+};
+
+export default function Hero({ stats, appointments }: HeroProps) {
   return (
     <section className="bg-gray-50">
       <div className="mx-auto grid min-h-[calc(100vh-80px)] max-w-7xl items-center gap-12 px-6 py-16 md:grid-cols-2">
@@ -122,7 +142,7 @@ export default function Hero() {
               <div className="rounded-xl bg-gray-50 p-4">
                 <Users className="text-green-600" size={20} />
                 <p className="mt-3 text-2xl font-bold text-gray-900">
-                  24
+                  {stats.clientsCount}
                 </p>
                 <p className="text-xs text-gray-500">
                   Clientes
@@ -132,7 +152,7 @@ export default function Hero() {
               <div className="rounded-xl bg-gray-50 p-4">
                 <CalendarDays className="text-green-600" size={20} />
                 <p className="mt-3 text-2xl font-bold text-gray-900">
-                  8
+                  {stats.todaySessionsCount}
                 </p>
                 <p className="text-xs text-gray-500">
                   Aulas hoje
@@ -142,7 +162,7 @@ export default function Hero() {
               <div className="rounded-xl bg-gray-50 p-4">
                 <TrendingUp className="text-green-600" size={20} />
                 <p className="mt-3 text-2xl font-bold text-gray-900">
-                  86%
+                  {stats.progressPercent}%
                 </p>
                 <p className="text-xs text-gray-500">
                   Progresso
@@ -164,52 +184,33 @@ export default function Hero() {
               </div>
 
               <div className="mt-4 space-y-3">
-
-                <div className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      Ana Paulo
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Treino de força
-                    </p>
+                {appointments.length === 0 ? (
+                  <div className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-500">
+                    Ainda não há aulas agendadas.
                   </div>
+                ) : (
+                  appointments.map((appointment) => (
+                    <div
+                      key={appointment.id}
+                      className="flex items-center justify-between rounded-xl bg-gray-50 p-4"
+                    >
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {appointment.clientName}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {appointment.type}
+                        </p>
+                      </div>
 
-                  <span className="font-semibold text-green-600">
-                    09:00
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      João Manuel
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Treino funcional
-                    </p>
-                  </div>
-
-                  <span className="font-semibold text-green-600">
-                    11:00
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      Carlos Silva
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Cardio
-                    </p>
-                  </div>
-
-                  <span className="font-semibold text-green-600">
-                    15:00
-                  </span>
-                </div>
-
+                      <span className="font-semibold text-green-600">
+                        {appointment.isToday
+                          ? appointment.time
+                          : `${appointment.date} · ${appointment.time}`}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
