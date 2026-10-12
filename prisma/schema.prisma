@@ -24,6 +24,7 @@ model Client {
   schedules  Schedule[]
   trainings  Training[]
   progresses Progress[]
+  goals      Goal[]
 }
 
 model Schedule {
@@ -81,6 +82,24 @@ model Progress {
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model Goal {
+  id           Int      @id @default(autoincrement())
+  clientId     Int
+  title        String
+  metric       String?
+  startValue   Float?
+  targetValue  Float?
+  currentValue Float?
+  unit         String?
+  deadline     String?
+  status       String   @default("Em progresso")
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }

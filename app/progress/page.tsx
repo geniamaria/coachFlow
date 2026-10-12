@@ -12,21 +12,13 @@ import {
   X,
 } from "lucide-react";
 import ProgressChart from "@/components/progress/progressChart";
+import { METRICS, type MetricKey } from "@/lib/metrics";
 
 type Client = {
   id: number;
   name: string;
   status: string;
 };
-
-type MetricKey =
-  | "weight"
-  | "bodyFat"
-  | "chest"
-  | "waist"
-  | "hip"
-  | "arm"
-  | "thigh";
 
 type ProgressEntry = {
   id: number;
@@ -53,26 +45,6 @@ type FormState = {
   thigh: string;
   notes: string;
 };
-
-const METRICS: { key: MetricKey; label: string; unit: string }[] = [
-  { key: "weight", label: "Peso", unit: "kg" },
-  { key: "bodyFat", label: "% Gordura", unit: "%" },
-  { key: "chest", label: "Peito", unit: "cm" },
-  { key: "waist", label: "Cintura", unit: "cm" },
-  { key: "hip", label: "Quadril", unit: "cm" },
-  { key: "arm", label: "Braço", unit: "cm" },
-  { key: "thigh", label: "Coxa", unit: "cm" },
-];
-
-const NUMERIC_FIELDS: { key: Exclude<keyof FormState, "date" | "notes">; label: string; unit: string }[] = [
-  { key: "weight", label: "Peso", unit: "kg" },
-  { key: "bodyFat", label: "% Gordura", unit: "%" },
-  { key: "chest", label: "Peito", unit: "cm" },
-  { key: "waist", label: "Cintura", unit: "cm" },
-  { key: "hip", label: "Quadril", unit: "cm" },
-  { key: "arm", label: "Braço", unit: "cm" },
-  { key: "thigh", label: "Coxa", unit: "cm" },
-];
 
 function todayISO() {
   const now = new Date();
@@ -454,7 +426,7 @@ export default function ProgressPage() {
                     />
                   </div>
 
-                  {NUMERIC_FIELDS.map((field) => (
+                  {METRICS.map((field) => (
                     <div key={field.key}>
                       <label className="mb-1.5 block text-sm font-medium text-gray-700">
                         {field.label}{" "}
