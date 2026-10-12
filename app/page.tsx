@@ -1,12 +1,101 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { Dumbbell } from "lucide-react";
-import Hero from "@/components/hero";
+import Hero, {
+  type HeroAppointment,
+  type HeroStats,
+} from "@/components/hero";
 import Footer from "@/components/footer";
 import Features from "@/components/features";
 import HowItWorks from "@/components/howItworks";
 import CallToAction from "@/components/callToAction";
+import { prisma } from "@/lib/prisma";
 
-export default function Home() {
+function todayISO() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+function formatShortDate(date: string) {
+  const [, month, day] = date.split("-");
+
+  return `${day}/${month}`;
+}
+
+async function getHeroData() {
+  const today = todayISO();
+  const fallback = {
+    stats: {
+      clientsCount: 0,
+      todaySessionsCount: 0,
+      progressPercent: 0,
+    } satisfies HeroStats,
+    appointments: [] as HeroAppointment[],
+  };
+
+  try {
+    // As queries são executadas sequencialmente (e não em Promise.all) porque
+    // o pooler de ligações do Prisma Postgres colide os nomes das prepared
+    // statements quando várias queries correm em paralelo (erro 42P05).
+    const clientsCount = await prisma.client.count();
+    const todaySessions = await prisma.schedule.findMany({
+      where: { date: today, status: { not: "Cancelado" } },
+      orderBy: { time: "asc" },
+      include: { client: { select: { name: true } } },
+    });
+    const upcomingSessions = await prisma.schedule.findMany({
+      where: { date: { gte: today }, status: { not: "Cancelado" } },
+      orderBy: [{ date: "asc" }, { time: "asc" }],
+      take: 3,
+      include: { client: { select: { name: true } } },
+    });
+    const totalSessions = await prisma.schedule.count();
+    const completedSessions = await prisma.schedule.count({
+      where: { status: "Concluído" },
+    });
+
+    const showToday = todaySessions.length > 0;
+    const progressPercent =
+      totalSessions > 0
+        ? Math.round((completedSessions / totalSessions) * 100)
+        : 0;
+
+    const appointments: HeroAppointment[] = (
+      showToday ? todaySessions : upcomingSessions
+    )
+      .slice(0, 3)
+      .map((schedule) => ({
+        id: schedule.id,
+        clientName: schedule.client.name,
+        type: schedule.type,
+        date: formatShortDate(schedule.date),
+        time: schedule.time,
+        isToday: schedule.date === today,
+      }));
+
+    return {
+      stats: {
+        clientsCount,
+        todaySessionsCount: todaySessions.length,
+        progressPercent,
+      } satisfies HeroStats,
+      appointments,
+    };
+  } catch (error) {
+    console.error("Erro ao carregar dados da página inicial:", error);
+
+    return fallback;
+  }
+}
+
+export default async function Home() {
+  await connection();
+
+  const { stats, appointments } = await getHeroData();
+
   return (
     <main className="min-h-screen bg-gray-50">
       {/* HEADER */}
@@ -68,7 +157,7 @@ export default function Home() {
       </header>
 
       {/* HERO  */}
-      <Hero />
+      <Hero stats={stats} appointments={appointments} />
 
       {/* FUNCIONALIDADES */}
       <Features />

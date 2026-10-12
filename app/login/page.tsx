@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Dumbbell, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
@@ -99,15 +98,6 @@ export default function LoginPage() {
               {loading ? "A entrar..." : "Entrar"}
             </button>
           </form>
-
-          <div className="mt-6 text-center">
-            <Link
-              href="/"
-              className="text-black text-gray-500 hover:text-gray-900"
-            >
-              Voltar para a página inicial
-            </Link>
-          </div>
         </div>
       </div>
     </main>
